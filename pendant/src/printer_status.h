@@ -20,15 +20,15 @@ extern "C" {
 
 #pragma pack(push, 1)
 typedef struct {
-    float position[AXIS_COUNT];          // 24 bytes
-    float hotend_temps[EXTRUDERS];       // 8 bytes
-    float hotend_targets[EXTRUDERS];     // 8 bytes
-    float bed_temp;                      // 4 bytes
-    float bed_target;                    // 4 bytes
-    uint8_t state;                       // 1 byte
-    uint32_t elapsed_seconds;            // 4 bytes
-    uint8_t feedrate_percentage;         // 1 byte
-    uint8_t reserved[6];                 // 6 bytes padding (tùy chỉnh để tổng thành 56 hoặc 64 bytes nếu cần)
+    float position[AXIS_COUNT];
+    float hotend_temps[EXTRUDERS];
+    float hotend_targets[EXTRUDERS];
+    float bed_temp;
+    float bed_target;
+    uint8_t state;
+    uint32_t elapsed_seconds;
+    uint8_t feedrate_percentage;
+    uint8_t reserved[6];
 } PrinterStatus;
 
 /** 

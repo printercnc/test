@@ -1,9 +1,15 @@
+//display manager.h
+
+
 #ifndef DISPLAYMANAGER_H
 #define DISPLAYMANAGER_H
 
 #include <U8g2lib.h>
 #include <string.h> // cho memcpy
 #include "printer_status.h"
+
+extern PrinterStatus printerStatus;      // extern declaration
+extern const char axesNames[AXIS_COUNT]; // extern declaration
 
 enum Page {
   PAGE_WARNING = 0,
@@ -27,31 +33,24 @@ struct Parameter {
 
 class DisplayManager {
 public:
-  DisplayManager(U8G2_ST7920_128X64_F_SW_SPI& display);
+    // constructor
+    DisplayManager(U8G2_ST7920_128X64_F_SW_SPI& display);
 
-  void drawOffsetsPage(const float offsets[AXIS_COUNT], const char* title);
-  void drawParameterPage(int selectedParamIdx);
+    void drawG54Page(const float offsets[AXIS_COUNT]);
+    void drawG55Page(const float offsets[AXIS_COUNT]);
 
-  void drawHomeStatusScreen();
+    void drawStatusScreen(const PrinterStatus* status);
+    void drawParameterPage(int selectedParamIdx);
+    void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition, const PrinterStatus* status);
+    void drawHomeStatusScreen(const PrinterStatus* status);
 
-  void drawStatusScreen(const PrinterStatus* status);
-
-  // Update giá trị parameter
-  void setParameterValue(int index, float val);
-
-  // Lấy giá trị parameter
-  float getParameterValue(int index) const;
-
-  
-  // Thêm 2 hàm getter cho g54_offsets và g55_offsets
-  const float* getG54Offsets() const { return g54_offsets; }
-  const float* getG55Offsets() const { return g55_offsets; }
-
-void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition);
+    float getParameterValue(int index) const;
+    void setParameterValue(int index, float val);
+    // ... khai báo thêm tương ứng
 
 private:
-  U8G2_ST7920_128X64_F_SW_SPI& u8g2;
-
+    U8G2_ST7920_128X64_F_SW_SPI& u8g2;
+    // các member khác...
   float g54_offsets[AXIS_COUNT];
   float g55_offsets[AXIS_COUNT];
 
