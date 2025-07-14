@@ -1,8 +1,6 @@
+
+
 #include "MenuController.h"
-#include "PrinterI2C.h"
-
-
-extern PrinterI2C printerI2c;  // khai báo biến toàn cục ngoài
 
 MenuController::MenuController() 
   : currentPage(0), selectedAxis('X'), selectedAxisIndex(0), jogMultiplierIndex(0) {
@@ -52,11 +50,6 @@ void MenuController::handleKey(char key) {
             Serial.println(jogMultipliers[jogMultiplierIndex]);
             break;
 
-        case 'D':  // Nút home all
-            sendHomeCommand('D');
-            Serial.println("Sent Home All command");
-            break;
-
         case '5': // lên menu hoặc tăng giá trị
             // Thực hiện logic tăng menu hoặc giá trị
             Serial.println("Key 5 pressed: Up/Increase");
@@ -81,11 +74,3 @@ void MenuController::handleKey(char key) {
     }
 }
 
-void MenuController::sendHomeCommand(char axis) {
-    if (axis == 'D') {
-        printerI2c.sendHomeCommand();
-    } else {
-        // Nếu muốn home từng trục, bạn có thể bổ sung lệnh tương ứng ở đây
-        // printerI2c.sendHomeCommand(axis);
-    }
-}

@@ -1,3 +1,5 @@
+// src/Status.cpp
+
 #include "Status.h"
 
-PrinterStatus printerStatus = {};
+PrinterStatus latestStatus;  // definition

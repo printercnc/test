@@ -4,22 +4,20 @@
 #ifndef DISPLAYMANAGER_H
 #define DISPLAYMANAGER_H
 
+#include "printer_status.h"
 #include <U8g2lib.h>
 #include <string.h> // cho memcpy
-#include "printer_status.h"
 
-extern PrinterStatus printerStatus;      // extern declaration
-extern const char axesNames[AXIS_COUNT]; // extern declaration
 
 enum Page {
   PAGE_WARNING = 0,
-  PAGE_G54     = 1,
-  PAGE_G55     = 2,
-  PAGE_MACHINE = 3,
-  PAGE_PARAMETER = 4,
-  PAGE_HOME_STATUS = 5,
-  PAGE_COUNT      = 7,
+  PAGE_G54 = 1,
+  PAGE_PRINTER3D = 2,
+  PAGE_PARAMETER = 3,
+  PAGE_HOME_STATUS = 4,
+  PAGE_COUNT = 5
 };
+
 struct Parameter {
   const char* name;
   float value;
@@ -36,13 +34,25 @@ public:
     // constructor
     DisplayManager(U8G2_ST7920_128X64_F_SW_SPI& display);
 
+    void drawHomeStatusScreen(const PrinterStatus* status);
+    void drawPrinter3DPage(const PrinterStatus* status);
+    void drawWarningPage();
+
+    void sendHomeCommand();
+    void sendJogCommand(char axis, float distance);
+
+    void setJogAxis(char axis);
+    char getJogAxis() const;
+
+    void setJogDistance(float dist);
+    float getJogDistance() const;
+
     void drawG54Page(const float offsets[AXIS_COUNT]);
     void drawG55Page(const float offsets[AXIS_COUNT]);
 
     void drawStatusScreen(const PrinterStatus* status);
     void drawParameterPage(int selectedParamIdx);
     void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition, const PrinterStatus* status);
-    void drawHomeStatusScreen(const PrinterStatus* status);
 
     float getParameterValue(int index) const;
     void setParameterValue(int index, float val);
@@ -50,6 +60,13 @@ public:
 
 private:
     U8G2_ST7920_128X64_F_SW_SPI& u8g2;
+
+    // Biến lưu trữ trục jog hiện tại (mặc định 'X')
+    char jogAxis = 'X';
+
+    // Bước di chuyển jog, ví dụ 0.1mm, 1mm, 10mm tùy chỉnh
+    float jogDistance = 1.0f;
+
     // các member khác...
   float g54_offsets[AXIS_COUNT];
   float g55_offsets[AXIS_COUNT];

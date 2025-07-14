@@ -5,12 +5,6 @@
 #pragma once
 #include <stdint.h>
 
-#define CMD_NONE    0x00
-#define CMD_HOME    0x01
-#define CMD_PAUSE   0x02
-#define CMD_RESUME  0x03
-#define CMD_STOP    0x04
-
 #define AXIS_COUNT 6
 #define EXTRUDERS 2
 
