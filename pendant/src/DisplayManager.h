@@ -36,6 +36,9 @@ public:
 
     void drawHomeStatusScreen(const PrinterStatus* status);
     void drawPrinter3DPage(const PrinterStatus* status);
+      void drawCNCPage_NeedConnection();
+    void draw3DPage_NeedConnection();
+    void drawJogPage_NeedConnection();
     void drawWarningPage();
 
     void sendHomeCommand();

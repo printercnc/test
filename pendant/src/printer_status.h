@@ -20,13 +20,14 @@ typedef struct {
     float bed_temp;
     float bed_target;
     uint8_t state;
+    uint8_t extruderType;     // Thêm trường này: 0 = CNC, 1 = 3D printer
     uint32_t elapsed_seconds;
     uint8_t feedrate_percentage;
-    uint8_t reserved[6];
+    uint8_t reserved[5];      // Giảm còn 5 (do phía trên thêm 1 byte extruderType)
 } PrinterStatus;
 
-/** 
- * Struct lệnh gửi từ STM32 -> Marlin 
+/**
+ * Struct lệnh gửi từ STM32 -> Marlin
  * Ví dụ lệnh Home, Pause, Resume, Stop, ...
  */
 typedef struct {

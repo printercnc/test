@@ -26,7 +26,7 @@ PrinterStatus printerStatus;
 void DisplayManager::drawWarningPage() {
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_6x12_tr);
-  u8g2.drawStr(0, 20, "Waiting for Marlin...");
+  u8g2.drawStr(0, 20, "Waiting for cnc...");
   u8g2.sendBuffer();
 }
 
@@ -180,3 +180,24 @@ void DisplayManager::setJogDistance(float dist) {
 float DisplayManager::getJogDistance() const {
     return jogDistance;
 } 
+void DisplayManager::drawCNCPage_NeedConnection() {
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_ncenB08_tr);
+    u8g2.drawStr(0, 10, "CNC: No Connection");
+    u8g2.sendBuffer();
+}
+
+void DisplayManager::draw3DPage_NeedConnection() {
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_ncenB08_tr);
+    u8g2.drawStr(0, 10, "3D Printer: No Conn.");
+    u8g2.sendBuffer();
+}
+
+void DisplayManager::drawJogPage_NeedConnection() {
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_ncenB08_tr);
+    u8g2.drawStr(0, 10, "Jog: No Connection");
+    u8g2.sendBuffer();
+}
+
