@@ -1,10 +1,9 @@
-//display manager.h
 
+//display manager.h
 
 #ifndef DISPLAYMANAGER_H
 #define DISPLAYMANAGER_H
 
-#include "printer_status.h"
 #include <U8g2lib.h>
 #include <string.h> // cho memcpy
 
@@ -34,12 +33,11 @@ public:
     // constructor
     DisplayManager(U8G2_ST7920_128X64_F_SW_SPI& display);
 
-    void drawHomeStatusScreen(const PrinterStatus* status);
-    void drawPrinter3DPage(const PrinterStatus* status);
-      void drawCNCPage_NeedConnection();
+    void drawCNCPage_NeedConnection();
     void draw3DPage_NeedConnection();
     void drawJogPage_NeedConnection();
     void drawWarningPage();
+    void draw3DPage_WithConnected();
 
     void sendHomeCommand();
     void sendJogCommand(char axis, float distance);
@@ -53,9 +51,8 @@ public:
     void drawG54Page(const float offsets[AXIS_COUNT]);
     void drawG55Page(const float offsets[AXIS_COUNT]);
 
-    void drawStatusScreen(const PrinterStatus* status);
     void drawParameterPage(int selectedParamIdx);
-    void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition, const PrinterStatus* status);
+    void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition);
 
     float getParameterValue(int index) const;
     void setParameterValue(int index, float val);

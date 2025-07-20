@@ -1,6 +1,8 @@
+
+//Keyboard.h
+
 #include "Keyboard.h"
 #include <Arduino.h> // cho pinMode, digitalRead, digitalWrite, delay
-
 
 // B���ng map key mặc định (4x4)
 const char Keyboard::keymap[4][4] = {

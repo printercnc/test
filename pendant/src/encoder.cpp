@@ -1,6 +1,7 @@
+//Encoder.cpp
+
 #include "encoder.h"
 #include "stm32f1xx_hal.h"
-#include "main.h" // nếu có khai báo My_Error_Handler
 
 extern void My_Error_Handler(void);
 extern TIM_HandleTypeDef htim2;  // Biến định nghĩa ở main.c hoặc main.cpp
