@@ -27,49 +27,65 @@ struct Parameter {
 
 #define PARAM_COUNT 3
 #define AXIS_COUNT 6
+// Dữ liệu vị trí tọa độ hiện tại, dùng để hiển thị hoặc cập nhật từ UART
+extern float stepperAccel[AXIS_COUNT];
+extern float stepperMaxSpeed[AXIS_COUNT];
+extern float current_position[AXIS_COUNT];
+extern float g54Offsets[AXIS_COUNT];
+extern const char axesNames[AXIS_COUNT];
+extern const char* homeStatusMenu[];
+extern const int homeStatusMenuCount;
 
 class DisplayManager {
 public:
     // constructor
     DisplayManager(U8G2_ST7920_128X64_F_SW_SPI& display);
-
+    // Các hàm vẽ trang
     void drawCNCPage_NeedConnection();
     void draw3DPage_NeedConnection();
     void drawJogPage_NeedConnection();
     void drawWarningPage();
     void draw3DPage_WithConnected();
 
-    void sendHomeCommand();
-    void sendJogCommand(char axis, float distance);
+    void drawG54Page_FromMarlin_CurrentPos();
+    void drawG54Page_FromMarlin_Offsets();
+    void updateParameterValue(int paramIdx, float delta);
 
-    void setJogAxis(char axis);
-    char getJogAxis() const;
-
-    void setJogDistance(float dist);
-    float getJogDistance() const;
-
-    void drawG54Page(const float offsets[AXIS_COUNT]);
-    void drawG55Page(const float offsets[AXIS_COUNT]);
-
-    void drawParameterPage(int selectedParamIdx);
+    void drawHomeStatusPage(int homeStatusMenuSelected);
+    void drawParameterPage(int parameterSelectedIdx);
     void drawMachineControlPage(int selectedMenuIndex, char selectedAxis, float currentPosition);
 
+    // Các hàm menu Home Status
+    void homeStatusMenuMoveUp();
+    void homeStatusMenuMoveDown();
+    void homeStatusMenuSelect();
+
+     // Getter và setter cho homeStatusMenuSelected
+    int getHomeStatusMenuSelected() const { return homeStatusMenuSelected; }
+    void setHomeStatusMenuSelected(int val) { homeStatusMenuSelected = val; }
+
+    // Getter và setter cho jogSelectedAxis
+    char getJogSelectedAxis() const { return jogSelectedAxis; }
+    void setJogSelectedAxis(char val) { jogSelectedAxis = val; }
+
+    // Chọn trục jog từ bàn phím (vd: press '1' là chọn trục X ...)
+    void selectJogAxis(char axisKey);
+    void setJogDistance(float dist);
+    // Xử lý jog bằng encoder (quay encoder 1 bước tăng hoặc giảm)
+    void jogByStep(int steps);
+
+    // Lấy/đặt giá trị param
     float getParameterValue(int index) const;
     void setParameterValue(int index, float val);
-    // ... khai báo thêm tương ứng
 
 private:
     U8G2_ST7920_128X64_F_SW_SPI& u8g2;
 
-    // Biến lưu trữ trục jog hiện tại (mặc định 'X')
     char jogAxis = 'X';
-
-    // Bước di chuyển jog, ví dụ 0.1mm, 1mm, 10mm tùy chỉnh
     float jogDistance = 1.0f;
 
-    // các member khác...
-  float g54_offsets[AXIS_COUNT];
-  float g55_offsets[AXIS_COUNT];
+    int homeStatusMenuSelected = 0; // 0: HOME-ALL, 1: JOG-AXIS
+    char jogSelectedAxis = 'X';
 
   const char axes[AXIS_COUNT] = {'X', 'Y', 'Z', 'A', 'C', 'E'};
 

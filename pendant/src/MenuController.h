@@ -22,7 +22,6 @@ public:
     bool isUserOverrideActive() const;
 
     int getCurrentJogMultiplier() const;
-    void sendHomeCommand(char axis); // bạn implement chi tiết bên cpp
 
      // Thêm hàm set/get extruderType
     void setExtruderType(uint8_t type);
@@ -33,23 +32,27 @@ public:
 
     char getSelectedAxis() const { return selectedAxis; }
     uint8_t getSelectedAxisIndex() const { return selectedAxisIndex; }
-    int getJogMultiplierIndex() const { return jogMultiplierIndex; }
+    void setJogMultiplierIndex(int index);
 
      int getCurrentRow() const { return currentRow; }
     void setCurrentRow(int row) { currentRow = row; }
 
     void updatePage();
+    int getHomeStatusMenuSelected() const { return homeStatusMenuSelected; }
+    void setHomeStatusMenuSelected(int idx) {
+        if (idx >=0 && idx < homeStatusMenuCount) homeStatusMenuSelected = idx;
+    }
 
 private:
     DisplayManager& displayManager;
      uint8_t extruderType = 0;    // 0 = CNC (default), 1 = 3D printer
      int autoPage = 0;           // Trang tự động
+     bool uartConnected = false;
     int userSelectedPage = -1;  // Trang do người dùng chọn (-1 nghĩa chưa chọn)
     uint32_t lastUserInputTime = 0;
 
     static constexpr uint32_t USER_OVERRIDE_TIMEOUT = 10000; // 10 giây
 
-    bool uartConnected = false;
     int currentPage = 0;
     char selectedAxis;
     int selectedAxisIndex;
@@ -60,7 +63,9 @@ private:
 
     static constexpr int jogMultipliers[3] = {1, 10, 100}; // ví dụ cấp độ bước nhảy
     void autoNavigateOnConnect(); // Điều hướng tự động khi kết nối
-    
+    int parameterSelectedIdx = 0;  // Dòng đang chọn ở PAGE_PARAMETER
+    int homeStatusMenuSelected = 0;
+    int homeStatusMenuCount = 2; // Dòng đang chọn ở PAGE_HOME_STATUS
 };
 
 #endif

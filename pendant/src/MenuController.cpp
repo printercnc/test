@@ -47,14 +47,6 @@ int MenuController::getCurrentJogMultiplier() const {
     return jogMultipliers[jogMultiplierIndex];
 }
 
-void MenuController::sendHomeCommand(char axis) {
-    if (axis == 'H') {
-        displayManager.sendHomeCommand();
-    } else {
-        displayManager.sendJogCommand(axis, jogMultipliers[jogMultiplierIndex]);
-    }
-}
-
 void MenuController::handleKey(char key) {
     switch (key) {
         case '*':
@@ -105,38 +97,32 @@ void MenuController::handleKey(char key) {
             Serial1.println(jogMultipliers[jogMultiplierIndex]);
             break;
 
-        case '8': // Enter/Select
-    Serial.println("Key 8 pressed: Enter/Select");
-    switch (currentPage) {
-        case 3: // Trang điều khiển jog & home
-            if (currentRow == HOME_ROW_INDEX) {  // HOME_ROW_INDEX = số dòng liệt kê lệnh HOME
-                displayManager.sendHomeCommand(); // gọi hàm gửi lệnh homing
-            } else if (selectedAxis >= 'A' && selectedAxis <= 'Z') {
-                float dist = jogMultipliers[jogMultiplierIndex];
-                displayManager.sendJogCommand(selectedAxis, dist); // gửi lệnh jog bình thường
-            }
-            break;
+       case '8':
+    if (currentPage == PAGE_HOME_STATUS) {
+        if (homeStatusMenuSelected == 0) {
+            // Thực hiện HOME-ALL
+            Serial1.println("G28");
+        } else if (homeStatusMenuSelected ==1) {
+            // Thực hiện JOG trục đang chọn với bước hiện tại
+            Serial1.println("G91"); // Relative mode
+            Serial1.print("G1 ");
+            Serial1.print(selectedAxis);
+            Serial1.print(getCurrentJogMultiplier());
+            Serial1.println(" F1000");
+            Serial1.println("G90"); // Về absolute mode
+        }
+    }
+    break;
 
-                // Các trang khác xử lý nhập liệu ở đây...
-            }
-            break;
+        case '5':  // nút lên
+    if (currentPage == PAGE_HOME_STATUS)
+            homeStatusMenuSelected = (homeStatusMenuSelected - 1 + homeStatusMenuCount) % homeStatusMenuCount;
+    break;
 
-        case '5': // Tăng giá trị hoặc menu
-            // Ví dụ dùng phím này để tăng jogDistance hoặc chọn param
-            jogMultiplierIndex = (jogMultiplierIndex + 1) % (sizeof(jogMultipliers) / sizeof(jogMultipliers[0]));
-            Serial1.print("Jog multiplier increased to: ");
-            Serial1.println(jogMultipliers[jogMultiplierIndex]);
-            break;
-
-        case '0': // Giảm giá trị hoặc menu
-            if (jogMultiplierIndex == 0)
-                jogMultiplierIndex = (sizeof(jogMultipliers) / sizeof(jogMultipliers[0])) - 1;
-            else
-                jogMultiplierIndex--;
-            Serial1.print("Jog multiplier decreased to: ");
-            Serial1.println(jogMultipliers[jogMultiplierIndex]);
-            break;
-
+        case '0':  // Nút xuống
+         if (currentPage == PAGE_HOME_STATUS)
+            homeStatusMenuSelected = (homeStatusMenuSelected + 1) % homeStatusMenuCount;
+    break;
         // các phím khác giữ nguyên
     }
 }
