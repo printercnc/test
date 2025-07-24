@@ -2,6 +2,7 @@
 //DisplayManager.cpp
 
 #include "DisplayManager.h"
+#include "MenuController.h"
 #include <stdio.h>    // snprintf
 extern U8G2_ST7920_128X64_F_SW_SPI u8g2;  // extern display instance từ main hoặc nơi khác
 #include <Arduino.h> // Để sử dụng Serial
@@ -94,7 +95,7 @@ void DisplayManager::drawParameterPage(int selectedParamIdx) {
         }
 
         u8g2.drawStr(2, y, buf);
-        y += 14;
+        y += 12;
     }
     u8g2.setDrawColor(1); // Reset màu chữ
     u8g2.sendBuffer();
@@ -138,103 +139,60 @@ char jogSelectedAxis = 'X';   // Trục jog đang chọn
 float jogDistance = 1.0f;     // Khoảng cách di chuyển mỗi bước jog, bạn có thể thay đổi
 
 // Hàm vẽ trang HOME_STATUS
-void DisplayManager::drawHomeStatusPage(int selectedIdx) {
+void DisplayManager::drawHomeStatusPage(int selectedIdx, int menuCount) {
     u8g2.clearBuffer();
     u8g2.setFont(u8g2_font_6x12_tr);
     // Vẽ tiêu đề
-    u8g2.drawStr(0, 12, "Home / Jog Status:");
-
-    int y = 30;
+    u8g2.drawStr(0, 11, "Home / Jog Status:");
+    int menuStartY = 22;
     for (int i = 0; i < homeStatusMenuCount; i++) {
+        int y = menuStartY + i * 11;
         if (i == selectedIdx) {
-            u8g2.drawBox(0, y - 10, 128, 12);
-            u8g2.setDrawColor(0); // Đặt lại màu in chữ là đen
-            u8g2.setCursor(2, y);
-            u8g2.print(">");
-             u8g2.setCursor(12, y);
-            u8g2.print(homeStatusMenu[i]);
-            u8g2.setDrawColor(1); // reset lại màu
-        } else {
-             u8g2.setCursor(12, y);
-        u8g2.print(homeStatusMenu[i]);
+            u8g2.drawBox(0, y - 9, 128, 11);
+            u8g2.setDrawColor(0);
         }
-        y += 14;       
+        u8g2.drawStr(12, y, homeStatusMenu[i]);
+        u8g2.setDrawColor(1);
     }
     // Nếu chọn JOG-AXIS, hiện danh sách trục bên dưới để chọn
     if (selectedIdx == 1) {  // JOG-AXIS selected
-        u8g2.drawStr(0, y + 10, "Select Axis:");
+        int axisStartY = menuStartY + homeStatusMenuCount * 11 + 3;
+        u8g2.setFont(u8g2_font_5x8_tr); // Font nhỏ cho phần trục
+        u8g2.drawStr(0, axisStartY, "Select Axis:");
 
         int x = 0;
-        int yJog = y + 25;
-
+        int axisY = axisStartY + 10;   // Dòng kế tiếp
         for (int i = 0; i < jogAxesCount; i++) {
-                char axisName[2] = {jogAxesList[i], 0};
-                u8g2.drawStr(x + 2, yJog, axisName);
-            x += 14;
-            if (x > 110) { // xuống dòng nếu quá dài
+            char axisName[2] = {jogAxesList[i], 0};
+            // bôi nền nếu đây là trục đang chọn
+            if(jogSelectedAxis == jogAxesList[i]) {
+                u8g2.setDrawColor(1);
+                u8g2.drawBox(x-1, axisY-7, 10, 9); // bôi font to chút
+                u8g2.setDrawColor(0);
+                u8g2.drawStr(x, axisY, axisName);
+                u8g2.setDrawColor(1);
+            } else {
+                u8g2.drawStr(x, axisY, axisName);
+            }
+            x += 12;   // Khoảng cách giữa các trục
+            // Nếu quá chiều rộng, xuống dòng tiếp (cho chắc chắn không tràn màn)
+            if (x > 120) { // 5 trục thì không cần, nhưng để an toàn nếu sau này mở rộng
                 x = 0;
-                yJog += 14;
+                axisY += 10;
             }
         }
-       // Hiển thị info jog distance (bước di chuyển mỗi increment encoder)
-char jogInfo[32];
-snprintf(jogInfo, sizeof(jogInfo), "Jog Step: %.2f", jogDistance);
-u8g2.drawStr(0, yJog + 20, jogInfo);
-}
-u8g2.sendBuffer();
-}
-
-// Hàm gọi khi người dùng bấm phím lên/xuống để chọn HOME-ALL hay JOG-AXIS
-void DisplayManager::homeStatusMenuMoveUp() {
-    if (homeStatusMenuSelected > 0) homeStatusMenuSelected--;
-    else homeStatusMenuSelected = homeStatusMenuCount - 1; // Quay về cuối nếu ở đầu
-}
-
-void DisplayManager::homeStatusMenuMoveDown() {
-    if (homeStatusMenuSelected < homeStatusMenuCount - 1) homeStatusMenuSelected++;
-}
-
-// Hàm xử lý khi người dùng nhấn phím OK/Enter trên trang HomeStatus
-void DisplayManager::homeStatusMenuSelect() {
-    if (homeStatusMenuSelected == 0) {
-        // HOME-ALL được chọn -> gửi lệnh homing
-        Serial1.println("G28");
-    } else if (homeStatusMenuSelected == 1) {
-         char cmdBuf[8];
-        sprintf(cmdBuf, "G28 %c", jogSelectedAxis); // VD sẽ thành G28 X, G28 Y...
-        Serial1.println(cmdBuf);
-        // hoặc tùy ý mở rộng cho từng trường hợp
+        // -- Vẽ thông tin jog step (bước di chuyển mỗi vòng encoder)
+        char jogInfo[32];
+        snprintf(jogInfo, sizeof(jogInfo), "Jog Step: %.2f", jogDistance);
+        // Đặt info phía dưới danh sách trục, nhưng đảm bảo không vượt ra khỏi màn hình!
+        int jogInfoY = axisY + 12;
+        if (jogInfoY > 63) jogInfoY = 63; // Giới hạn lại
+        u8g2.setFont(u8g2_font_5x8_tr);
+        u8g2.drawStr(0, jogInfoY, jogInfo);
     }
-}
 
-// Hàm chọn trục jog khi người dùng nhấn phím số 1..5
-void DisplayManager::selectJogAxis(char key) {
-    // Nếu key là số '1'..'5', chuyển thành index trục
-    if (key >= '1' && key <= '5') {
-        int index = key - '1';
-        if (index < jogAxesCount) {
-            jogSelectedAxis = jogAxesList[index];
-            // Bạn có thể reset jogDistance hoặc để nguyên tùy nhu cầu
-        }
-    }
+    u8g2.sendBuffer();
 }
-
-// Hàm xử lý khi quay encoder (+step hoặc -step)
-void DisplayManager::jogByStep(int steps) {
-    // Tính khoảng cách di chuyển
-    float dist = jogDistance * steps;
-    // Gửi lệnh jog tương ứng tới Marlin
-    // Ví dụ gửi lệnh jog:
-    //   G91 (relative mode)
-    //   G1 X... F1000 (axis và khoảng cách)
-    Serial1.println("G91"); // Chế độ tương đối
-    Serial1.print("G1 ");
-    Serial1.print(jogSelectedAxis);
-    Serial1.print(dist, 3);  // 3 chữ số thập phân
-    Serial1.println(" F1000");
-    Serial1.println("G90"); // Quay lại chế độ tuyệt đối nếu cần
-}
-void DisplayManager::setJogDistance(float dist) { jogDistance = dist; }
 
 void DisplayManager::drawCNCPage_NeedConnection() {
     u8g2.clearBuffer();

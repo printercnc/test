@@ -2,7 +2,6 @@
 //MenuController.cpp
 
 #include "MenuController.h"
-#include "DisplayManager.h"
 #include <Arduino.h>
 
 MenuController::MenuController(DisplayManager& displayMgr) : displayManager(displayMgr) {
@@ -24,9 +23,7 @@ void MenuController::setExtruderType(uint8_t type) {
 }
 
 // Hàm get extruder type
-uint8_t MenuController::getExtruderType() const {
-    return extruderType;
-}
+uint8_t MenuController::getExtruderType() const {return extruderType;}
 
 // Hàm set uart connected
 void MenuController::setUartConnected(bool connected) {
@@ -42,11 +39,17 @@ void MenuController::setCurrentPage(int page) {
         // Có thể xử lý logic khi thay đổi trang
     }
 }
-
-int MenuController::getCurrentJogMultiplier() const {
-    return jogMultipliers[jogMultiplierIndex];
+// -- các hàm dưới đây nằm NGOÀI handleKey, không lồng vào -- 
+void MenuController::homeStatusMenuMoveUp() {
+    homeStatusMenuSelected = (homeStatusMenuSelected - 1 + homeStatusMenuCount) % homeStatusMenuCount;
+}
+void MenuController::homeStatusMenuMoveDown() {
+    homeStatusMenuSelected = (homeStatusMenuSelected + 1) % homeStatusMenuCount;
 }
 
+int MenuController::getHomeStatusMenuCount() const { return homeStatusMenuCount;}
+
+//----------------------------------
 void MenuController::handleKey(char key) {
     switch (key) {
         case '*':
@@ -97,33 +100,55 @@ void MenuController::handleKey(char key) {
             Serial1.println(jogMultipliers[jogMultiplierIndex]);
             break;
 
-       case '8':
-    if (currentPage == PAGE_HOME_STATUS) {
-        if (homeStatusMenuSelected == 0) {
-            // Thực hiện HOME-ALL
+        case '8':
+            if (currentPage == PAGE_HOME_STATUS) {
+            if (homeStatusMenuSelected == 0) {
             Serial1.println("G28");
-        } else if (homeStatusMenuSelected ==1) {
-            // Thực hiện JOG trục đang chọn với bước hiện tại
+            } else if (homeStatusMenuSelected == 1) {
             Serial1.println("G91"); // Relative mode
             Serial1.print("G1 ");
             Serial1.print(selectedAxis);
             Serial1.print(getCurrentJogMultiplier());
             Serial1.println(" F1000");
-            Serial1.println("G90"); // Về absolute mode
-        }
+            Serial1.println("G90"); // Absolute mode
+                }
+            }
+            break;
+   
+        case '5':
+            if (currentPage == PAGE_HOME_STATUS) {
+            Serial1.println("Pressed 5 Move UP");
+            homeStatusMenuMoveUp();
+            Serial1.print("homeStatusMenuSelected: ");
+            Serial1.println(homeStatusMenuSelected);
+            }
+            break;
+
+         case '0':
+            if (currentPage == PAGE_HOME_STATUS) {
+            Serial1.println("Pressed 0 Move DOWN");
+            homeStatusMenuMoveDown();
+            Serial1.print("homeStatusMenuSelected: ");
+            Serial1.println(homeStatusMenuSelected);
+            }
+            break;
+
+         case 'D':
+            if (currentPage == PAGE_HOME_STATUS) {
+            autoPageEnabled = true;
+            userSelectedPage = -1; // reset override
+            Serial1.println("Auto page enabled");
+            return; // trả về ngay, không disable autoPageEnabled nữa
+            }
+            break;
+
+        default:
+            break;
     }
-    break;
 
-        case '5':  // nút lên
-    if (currentPage == PAGE_HOME_STATUS)
-            homeStatusMenuSelected = (homeStatusMenuSelected - 1 + homeStatusMenuCount) % homeStatusMenuCount;
-    break;
-
-        case '0':  // Nút xuống
-         if (currentPage == PAGE_HOME_STATUS)
-            homeStatusMenuSelected = (homeStatusMenuSelected + 1) % homeStatusMenuCount;
-    break;
-        // các phím khác giữ nguyên
+    // Nếu key không phải D ở trang PAGE_HOME_STATUS thì tắt autoPageEnabled
+    if (currentPage == PAGE_HOME_STATUS && key != 'D') {
+        autoPageEnabled = false;
     }
 }
 
@@ -131,15 +156,22 @@ void MenuController::setAutoPage(int page) {
     autoPage = page;
 }
 void MenuController::updatePage() {
-    // Nếu userSelectedPage đang override và chưa timeout
-    if (userSelectedPage != -1 && (millis() - lastUserInputTime) < USER_OVERRIDE_TIMEOUT) {
-        currentPage = userSelectedPage;
+    if (!autoPageEnabled) {
+        // Auto page off, chỉ dùng userSelectedPage nếu có, hoặc giữ currentPage
+        if (userSelectedPage != -1) {
+            currentPage = userSelectedPage;
+        }
+        // Nếu userSelectedPage == -1 thì giữ nguyên currentPage, không chuyển tự động
     } else {
-        // Hết timeout hoặc chưa bao giờ override, reset override
-        userSelectedPage = -1;
-        currentPage = autoPage;
+        if (userSelectedPage != -1 && (millis() - lastUserInputTime) < USER_OVERRIDE_TIMEOUT) {
+            currentPage = userSelectedPage;
+        } else {
+            userSelectedPage = -1;
+            currentPage = autoPage;
+        }
     }
 }
+
 int MenuController::getCurrentPage() const {
     return currentPage;
 }
@@ -150,4 +182,7 @@ int MenuController::getUserSelectedPage() const {
 
 bool MenuController::isUserOverrideActive() const {
     return (userSelectedPage != -1) && (millis() - lastUserInputTime < USER_OVERRIDE_TIMEOUT);
+}
+float MenuController::getCurrentJogMultiplier() const {
+    return jogMultipliers[jogMultiplierIndex];
 }

@@ -135,10 +135,6 @@ void loop() {
     }
     menuController.setAutoPage(autoPage);
     menuController.updatePage();
-    int page = menuController.getCurrentPage();
-    if (page == PAGE_HOME_STATUS) {
-        displayManager.drawHomeStatusPage(menuController.getHomeStatusMenuSelected());
-    }
 
      // Đọc bàn phím (nếu có) và gọi handleKey    
     char key = keyboard.scanKeyboard();
@@ -166,8 +162,8 @@ void loop() {
            displayManager.drawParameterPage(selectedParamIdx);
             break;
         case 4: // PAGE_HOME_STATUS
-        displayManager.drawHomeStatusPage(displayManager.getHomeStatusMenuSelected());
-    break;
+       displayManager.drawHomeStatusPage(menuController.getHomeStatusMenuSelected(), menuController.getHomeStatusMenuCount());
+            break;
           
         default:
           
